@@ -8,6 +8,8 @@ import gzip
 import os
 import fitdecode
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 def decompress_fit_gz(gz_file_path, output_directory=None):
     try:
@@ -100,3 +102,89 @@ if all_fit_files:
         print("No workout data was extracted from the .fit files.")
 else:
     print("No .fit or .fit.gz files found to process.")
+    
+# Calculate summary stats on the numerical columns
+    
+from datetime import timedelta
+
+def calculate_workout_summary(df):
+    """
+    Calculates summary stats for relevant numerical columns in a workout DataFrame
+    """
+    if df.empty:
+        return "No data to summarize."
+    
+    summary = {}
+    
+    #basic descriptive stats for numerical columns
+    numerical_cols = df.select_dtypes(include=['number'])
+    summary['basic_stats'] = numerical_cols.describe()
+    
+    # Addit'l useful calcs (if the column exists)
+    if 'timestamp' in df.columns:
+        summary['duration'] = (df['timestamp']).max() - df['timestamp'].min() if not df['timestamp'].empty else timedelta(0)
+        
+    if 'power' in df.columns:
+        summary['mean_power'] = df['power'].mean()
+        summary['max_power'] = df['power'].max()
+        
+    if 'heart_rate' in df.columns:
+        summary['mean_heart_rate'] = df['heart_rate'].mean()
+        summary['max_heart_rate'] = df['heart_rate'].max()
+
+    if 'speed' in df.columns:
+        summary['mean_speed'] = df['speed'].mean()
+        summary['max_speed'] = df['speed'].max()
+
+    if 'cadence' in df.columns:
+        summary['mean_cadence'] = df['cadence'].mean()
+        summary['max_cadence'] = df['cadence'].max()
+
+    if 'altitude' in df.columns:
+        summary['min_altitude'] = df['altitude'].min()
+        summary['max_altitude'] = df['altitude'].max()
+        summary['altitude_gain'] = df['altitude'].max() - df['altitude'].min() if not df['altitude'].empty else None
+
+    return summary
+
+# Using the 'all_workout_data' dictionary from the previous steps
+if 'all_workout_data' in locals() and all_workout_data:
+    all_workout_summaries = {}
+    for file_path, df in all_workout_data.items():
+        print(f"\n--- Summary Statistics for: {file_path} ---")
+        summary = calculate_workout_summary(df)
+        all_workout_summaries[file_path] = summary
+        if isinstance(summary, str):
+            print(summary)
+        else:
+            for key, value in summary.items():
+                if isinstance(value, pd.DataFrame):
+                    print(f"\n{key}:\n{value}")
+                else:
+                    print(f"{key}: {value}")
+else:
+    print("No workout data available. Please ensure you have processed the .fit files first.")
+    
+# Bar Chart of Mean Power for Each Workout
+if 'all_workout_summaries' in locals() and all_workout_summaries:
+    mean_powers = []
+    workout_files_boxplot = []
+    for file_path, summary in all_workout_summaries.items():
+        if isinstance(summary, dict) and 'mean_power' in summary:
+            mean_powers.append(summary['mean_power'])
+            workout_files_boxplot.append(os.path.basename(file_path))
+
+    if mean_powers:
+        df_boxplot = pd.DataFrame({'Workout': workout_files_boxplot, 'Mean Power (Watts)': mean_powers})
+        plt.figure(figsize=(10, 6))
+        sns.boxplot(x='Workout', y='Mean Power (Watts)', data=df_boxplot)
+        plt.xlabel("Workout")
+        plt.ylabel("Mean Power (Watts)")
+        plt.title("Distribution of Mean Power Across Workouts")
+        plt.xticks([])
+        plt.tight_layout()
+        plt.show()
+    else:
+        print("No max power data available to create the box plot.")
+else:
+    print("Please run the summary statistics calculation first.")
