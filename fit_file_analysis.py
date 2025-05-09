@@ -165,7 +165,14 @@ if 'all_workout_data' in locals() and all_workout_data:
 else:
     print("No workout data available. Please ensure you have processed the .fit files first.")
     
-# Bar Chart of Mean Power for Each Workout
+if 'all_workout_data' in locals() and all_workout_data:
+    for file_path, df in all_workout_data.items():
+        print(f"\nColumns in DataFrame for: {file_path}")
+        print(df.columns.tolist())
+else:
+    print("The 'all_workout_data' dictionary is not available. Please ensure you have processed the .fit files first.")
+    
+# Chart of Mean Power for Each Workout
 if 'all_workout_summaries' in locals() and all_workout_summaries:
     mean_powers = []
     workout_files_boxplot = []
