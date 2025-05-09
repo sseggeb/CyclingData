@@ -252,6 +252,6 @@ def update_summary(selected_file):
     return (summary_output, power_figure, heart_rate_figure, speed_figure, cadence_figure)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(port = 8000, debug=True)
     
-# http://127.0.0.1:8050/
+# http://127.0.0.1:8000/
