@@ -14,7 +14,30 @@ from datetime import timedelta
 import os
 
 # Placeholder if all_workout_data is not readily available
-all_workout_data = {}
+root_directory = 'C:/Users/spencer/Documents/cyclingdata2020' #directory where the .fit.gz files are located
+decompressed_directory = 'C:/Users/spencer/Documents/cyclingdata2020/decompressed' # directory for decompressed files to go to
+
+all_fit_files = find_and_decompress_fit_files(root_directory, decompressed_directory)
+if all_fit_files:
+    all_workout_data = process_fit_files(all_fit_files)
+
+    if all_workout_data:
+        print("\nSuccessfully processed the .fit files. Here's a preview of the data from the first file:")
+        first_file_path = list(all_workout_data.keys())[0]
+        print(f"\nData from: {first_file_path}")
+        print(all_workout_data[first_file_path].head())
+        print("\n(The 'all_workout_data' dictionary now contains DataFrames for each processed file)")
+        # Now you can iterate through the 'all_workout_data' dictionary to analyze each workout
+        # For example:
+        # for file_path, df in all_workout_data.items():
+        #     print(f"\nAnalyzing data from: {file_path}")
+        #     # Perform your analysis here (e.g., calculate mean power, plot heart rate)
+    else:
+        print("No workout data was extracted from the .fit files.")
+else:
+    print("No .fit or .fit.gz files found to process.")
+
+
 if not all_workout_data:
     print("Warning: No workout data available. Please run your data processing steps first.")
 
