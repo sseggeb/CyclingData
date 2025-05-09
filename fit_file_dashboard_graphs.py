@@ -130,7 +130,7 @@ app.layout = html.Div([
         dcc.Graph(id='heart-rate-time-series'),
         dcc.Graph(id='speed-time-series'),
         dcc.Graph(id='cadence-time-series')
-        ])
+        ], className='graph-container')
 ])
 
 def calculate_workout_summary(df):
