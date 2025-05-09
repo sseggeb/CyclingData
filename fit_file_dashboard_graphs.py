@@ -13,6 +13,7 @@ import pandas as pd
 from datetime import timedelta
 import os
 import gzip
+import plotly.graph_objects as go
 
 def decompress_fit_gz(gz_file_path, output_directory=None):
     try:
@@ -121,7 +122,15 @@ app.layout = html.Div([
         placeholder="Select a .fit file"
     ),
 
-    html.Div(id='output-summary')
+    html.Div(id='output-summary'),
+    
+    # Add Graph components for time series plots
+    html.Div([
+        dcc.Graph(id='power-time-series'),
+        dcc.Graph(id='heart-rate-time-series'),
+        dcc.Graph(id='speed-time-series'),
+        dcc.Graph(id='cadence-time-series')
+        ])
 ])
 
 def calculate_workout_summary(df):
@@ -160,26 +169,87 @@ def calculate_workout_summary(df):
     return summary
 
 @app.callback(
-    Output('output-summary', 'children'),
+    [Output('output-summary', 'children'),
+     Output('power-time-series', 'figure'),
+     Output('heart-rate-time-series','figure'),
+     Output('speed-time-series', 'figure'),
+     Output('cadence-time-series','figure')
+     ],
     [Input('file-selector', 'value')]
 )
 def update_summary(selected_file):
+    summary_output = html.P("Please select a .fit file to analyze.")
+    power_figure = go.Figure() # Default empty figures
+    heart_rate_figure = go.Figure()
+    speed_figure = go.Figure()
+    cadence_figure = go.Figure()
+    
+    
     if selected_file:
         if selected_file in all_workout_data:
             df = all_workout_data[selected_file]
             summary = calculate_workout_summary(df)
+            
+            # Update Summary Output
             output_components = [html.H3(f"Summary for: {os.path.basename(selected_file)}")]
             for key, value in summary.items():
                 if isinstance(value, pd.DataFrame):
                     output_components.append(html.H4(key.replace('_', ' ').title()))
-                    output_components.append(html.Div(value.to_string().replace('\n', html.Br().__str__())))
+                    output_components.append(html.Pre(value.to_string()))
                 else:
                     output_components.append(html.P(f"{key.replace('_', ' ').title()}: {value}"))
-            return html.Div(output_components)
+            summary_output = html.Div(output_components)
+           
+            # Create Time Series Plots
+            if 'timestamp' in df.columns:
+                if 'power' in df.columns:
+                    power_figure = go.Figure(
+                        data=[go.Scatter(x=df['timestamp'], y=df['power'], mode='lines')],
+                        layout=go.Layout(
+                            title='Power Over Time',
+                            xaxis={'title': 'Time'},
+                            yaxis={'title': 'Power (Watts)'}
+                        )
+                    )
+                if 'heart_rate' in df.columns:
+                    heart_rate_figure = go.Figure(
+                        data=[go.Scatter(x=df['timestamp'], y=df['heart_rate'], mode='lines', marker={'color': 'red'})],
+                        layout=go.Layout(
+                            title='Heart Rate Over Time',
+                            xaxis={'title': 'Time'},
+                            yaxis={'title': 'Heart Rate (bpm)'}
+                        )
+                    )
+                if 'speed' in df.columns:
+                     # Convert speed if necessary (fitdecode often provides speed in m/s)
+                     # Adjust this based on the actual unit in your .fit files
+                     speed_figure = go.Figure(
+                        data=[go.Scatter(x=df['timestamp'], y=df['speed'], mode='lines', marker={'color': 'green'})],
+                        layout=go.Layout(
+                            title='Speed Over Time',
+                            xaxis={'title': 'Time'},
+                            yaxis={'title': 'Speed'} # Add units here if known (e.g., m/s, km/h, mph)
+                        )
+                    )
+                if 'cadence' in df.columns:
+                    cadence_figure = go.Figure(
+                        data=[go.Scatter(x=df['timestamp'], y=df['cadence'], mode='lines', marker={'color': 'purple'})],
+                        layout=go.Layout(
+                            title='Cadence Over Time',
+                            xaxis={'title': 'Time'},
+                            yaxis={'title': 'Cadence (rpm)'} # Adjust units if necessary
+                        )
+                    )
+                # Create figures for other metrics similarly
+            else:
+                 summary_output = html.P(f"Error: 'timestamp' column not found in {os.path.basename(selected_file)}. Cannot plot time series.")
+
+
         else:
-            return html.P("Error: Selected file not found in processed data.")
-    else:
-        return html.P("Please select a .fit file to analyze.")
+            summary_output = html.P("Error: Selected file not found in processed data.")
+
+    # Return all outputs in the order defined in the @app.callback decorator
+    return (summary_output, power_figure, heart_rate_figure, speed_figure, cadence_figure)
 
 if __name__ == '__main__':
     app.run(debug=True)
