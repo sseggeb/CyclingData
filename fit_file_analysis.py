@@ -79,8 +79,8 @@ def process_fit_files(file_paths):
             
     return all_data
 
-root_directory = 'C:/Users/spencer/Documents/cyclingdata2020' #directory where the .fit.gz files are located
-decompressed_directory = 'C:/Users/spencer/Documents/cyclingdata2020/decompressed' # directory for decompressed files to go to
+root_directory = 'C:/Users/ssegg/OneDrive/Documents/data/cyclingdata2024' #directory where the .fit.gz files are located
+decompressed_directory = 'C:/Users/ssegg/OneDrive/Documents/data/cyclingdata2024/decompressed' # directory for decompressed files to go to
 
 all_fit_files = find_and_decompress_fit_files(root_directory, decompressed_directory)
 

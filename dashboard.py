@@ -14,8 +14,8 @@ from datetime import timedelta
 import os
 
 # Placeholder if all_workout_data is not readily available
-root_directory = 'C:/Users/spencer/Documents/cyclingdata2020' #directory where the .fit.gz files are located
-decompressed_directory = 'C:/Users/spencer/Documents/cyclingdata2020/decompressed' # directory for decompressed files to go to
+root_directory = 'C:/Users/ssegg/OneDrive/Documents/data/cyclingdata2024' #directory where the .fit.gz files are located
+decompressed_directory = 'C:/Users/ssegg/OneDrive/Documents/data/cyclingdata2024/decompressed' # directory for decompressed files to go to
 
 all_fit_files = find_and_decompress_fit_files(root_directory, decompressed_directory)
 if all_fit_files:
