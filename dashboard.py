@@ -12,11 +12,11 @@ from dash.dependencies import Input, Output
 import pandas as pd
 from datetime import timedelta
 import os
-import gzip
+from gzip import open
 
 def decompress_fit_gz(gz_file_path, output_directory=None):
     try:
-        with gzip.open(gz_file_path, 'rb') as gz_file:
+        with open(gz_file_path, 'rb') as gz_file:
             file_content = gz_file.read()
 
         base_name, ext = os.path.splitext(gz_file_path)
